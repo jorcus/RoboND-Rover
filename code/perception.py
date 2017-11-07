@@ -145,20 +145,32 @@ def perception_step(Rover):
 
     Rover.worldmap[nav_y_world, nav_x_world, 2] += 10
     Rover.worldmap[obs_y, obs_x, 0] += 1
-    Rover.nav_angles = angles
 
+
+    Rover.nav_angles = angles
+    Rover.nav_dists = dist
 
     if rocks_threshed.any():
         rock_xpix, rock_ypix = rover_coords(rocks_threshed)
         rock_x, rock_y = pix_to_world(rock_xpix, rock_ypix, xpos, ypos, yaw, world_shape, scale)
         rock_dist, rock_ang = to_polar_coords(rock_x, rock_y)
         rock_idx = np.argmin(rock_dist)
-        rock_xcen = rock_x
-        rock_ycen = rock_y
 
+        if not isinstance(rock_x, np.ndarray):
+            rock_x = [rock_x]
+            rock_y = [rock_y]
+            rock_ang = [rock_ang]
+        
+        rock_xcen = rock_x[rock_idx]
+        rock_ycen = rock_y[rock_idx]
         Rover.worldmap[rock_ycen, rock_xcen, :] = 255
         Rover.vision_image[:, :, 1] = rocks_threshed * 255
+
+        Rover.rock_found = True
+        # Rover.nav_angles = rock_ang
+        # Rover.nav_dists = rock_dist
     else:
+
         Rover.vision_image[:, :, 1] = 0
 
     return Rover

@@ -13,6 +13,7 @@ def decision_step(Rover):
     # Check if we have vision data to make decisions with
     if Rover.nav_angles is not None:
         # Check for Rover.mode status
+        
         if Rover.mode == 'forward': 
             # Check the extent of navigable terrain
             if len(Rover.nav_angles) >= Rover.stop_forward:  
@@ -57,7 +58,7 @@ def decision_step(Rover):
                     Rover.throttle = Rover.throttle_set
                     # Release the brake
                     Rover.brake = 0
-                    # Set steer to mean angle
+                    # Set steer to mean angles
                     Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
                     Rover.mode = 'forward'
     # Just to make the rover do something 
@@ -72,4 +73,3 @@ def decision_step(Rover):
         Rover.send_pickup = True
     
     return Rover
-
