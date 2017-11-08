@@ -5,6 +5,19 @@ from io import BytesIO, StringIO
 import base64
 import time
 
+
+def rover_check_stuck(Rover):
+      x = np.abs(Rover.prev_position[0][0] - Rover.prev_position[-1][0])
+      y = np.abs(Rover.prev_position[0][1] - Rover.prev_position[-1][1])
+      
+      if (x < 0.01 and y < 0.01 and Rover.throttle > 0 and Rover.mode == "forward"):
+            Rover.stuck = True
+      else:
+            Rover.stuck = False
+
+      print(x, '    ',y)
+
+
 # Define a function to convert telemetry strings to float independent of decimal convention
 def convert_to_float(string_to_convert):
       if ',' in string_to_convert:
@@ -12,6 +25,7 @@ def convert_to_float(string_to_convert):
       else: 
             float_value = np.float(string_to_convert)
       return float_value
+
 
 def update_rover(Rover, data):
       # Initialize start time and sample positions
@@ -29,26 +43,28 @@ def update_rover(Rover, data):
                   Rover.total_time = tot_time
       # Print out the fields in the telemetry data dictionary
       # print(data.keys())
-      # The current speed of the rover in m/s
       Rover.vel = convert_to_float(data["speed"])
-      # The current position of the rover
       Rover.pos = [convert_to_float(pos.strip()) for pos in data["position"].split(';')]
-      # The current yaw angle of the rover
       Rover.yaw = convert_to_float(data["yaw"])
-      # The current yaw angle of the rover
       Rover.pitch = convert_to_float(data["pitch"])
-      # The current yaw angle of the rover
       Rover.roll = convert_to_float(data["roll"])
-      # The current throttle setting
       Rover.throttle = convert_to_float(data["throttle"])
-      # The current steering angle
       Rover.steer = convert_to_float(data["steering_angle"])
-      # Near sample flag
       Rover.near_sample = np.int(data["near_sample"])
-      # Picking up flag
       Rover.picking_up = np.int(data["picking_up"])
-      # Update number of rocks collected
-      Rover.samples_collected = Rover.samples_to_find - np.int(data["sample_count"])
+      Rover.samples_collected = Rover.samples_to_find - np.int(data["sample_count"])  # Update number of rocks collected
+
+      # Reserve previous position for checking the rover is stuck or not
+      if len(Rover.prev_position) > 30:
+            Rover.prev_position.pop(0)
+            Rover.prev_position.append(Rover.pos)
+      else:
+            Rover.prev_position.append(Rover.pos)
+
+      rover_check_stuck(Rover)
+
+
+
 
       # print('speed =',Rover.vel, 'position =', Rover.pos, 'throttle =', 
       # Rover.throttle, 'steer_angle =', Rover.steer, 'near_sample:', Rover.near_sample, 
@@ -56,20 +72,25 @@ def update_rover(Rover, data):
       # 'total time:', Rover.total_time, 'samples remaining:', data["sample_count"], 
       # 'samples collected:', Rover.samples_collected)
 
-      print(tot_time)
       print('driving mode = {}'.format(Rover.mode))
+      print('stuck? = {}'.format(Rover.stuck))
       print('speed = {}'.format(Rover.vel))
       print('position = {}'.format(Rover.pos))
       print('yaw = {}, pitch = {}, roll = {} '.format(Rover.yaw, Rover.pitch, Rover.roll))
       print('throttle = {}'.format(Rover.throttle))
+      print('brake = {}'.format(Rover.brake))
       print('steer_angle = {}'.format(Rover.steer))
       print('near_sample = {}'.format(Rover.near_sample))
       print('picking_up = {}'.format(data["picking_up"]))
       print('sending pickup = {}'.format(Rover.send_pickup))
       print('total time = {}'.format(Rover.total_time))
+      # print('prev position = {}'.format(Rover.prev_position))
+
+
+      print('\nTotal samples = {}'.format(Rover.samples_to_find))
       print('samples remaining = {}'.format(data["sample_count"]))
       print('samples collected = {}'.format(Rover.samples_collected))
-
+      print('samples position = {}'.format(Rover.samples_pos))
       print('=============================== \n')
 
       # Get the current image from the center camera of the rover
