@@ -3,7 +3,7 @@ import cv2
 
 # Identify pixels above the threshold
 # Threshold of RGB > 160 does a nice job of identifying ground pixels only
-def color_thresh(img, rgb_thresh=(160, 160, 160)):
+def color_thresh(img, rgb_thresh=(140, 140, 140)):
     # Create an array of zeros same xy size as img, but single channel
     color_select = np.zeros_like(img[:,:,0])
     # Require that each pixel be above all three threshold values in RGB
@@ -94,6 +94,12 @@ def perspect_transform(img, src, dst):
     return warped
 
 
+def threshold_dilated(image, iterations = 1):
+	# https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
+  	# Define kernel [2x2] for morphological operation
+    kernel = np.ones((2,2),np.uint8)
+    return  cv2.dilate(image, kernel, iterations = iterations)
+
 # Apply the above functions in succession and update the Rover state accordingly
 def perception_step(Rover):
     # Example of how to use the Databucket() object defined above
@@ -119,6 +125,7 @@ def perception_step(Rover):
     color_threshed = color_thresh(warped)
     obstacle_threshed = obstacle_thresh(warped)
     rocks_threshed = rocks_thresh(warped)
+    rocks_threshed = threshold_dilated(rocks_threshed, 5)
 
     Rover.vision_image[:,:,2] = color_threshed * 255
     Rover.vision_image[:,:,0] = obstacle_threshed * 255
@@ -146,14 +153,15 @@ def perception_step(Rover):
     Rover.worldmap[nav_y_world, nav_x_world, 2] += 10
     Rover.worldmap[obs_y, obs_x, 0] += 1
 
-
     Rover.nav_angles = angles
     Rover.nav_dists = dist
-
+    Rover.rock_nav_angles = None
+    Rover.rock_nav_dists = None
     if rocks_threshed.any():
         rock_xpix, rock_ypix = rover_coords(rocks_threshed)
         rock_x, rock_y = pix_to_world(rock_xpix, rock_ypix, xpos, ypos, yaw, world_shape, scale)
         rock_dist, rock_ang = to_polar_coords(rock_x, rock_y)
+        rock_dist2, rock_ang2 = to_polar_coords(rock_xpix, rock_ypix)
         rock_idx = np.argmin(rock_dist)
 
         if not isinstance(rock_x, np.ndarray):
@@ -167,10 +175,10 @@ def perception_step(Rover):
         Rover.vision_image[:, :, 1] = rocks_threshed * 255
 
         Rover.rock_found = True
-        # Rover.nav_angles = rock_ang
-        # Rover.nav_dists = rock_dist
+        Rover.rock_nav_angles = rock_ang2
+        Rover.rock_nav_dists = rock_dist2
     else:
-
+        Rover.rock_found = False
         Rover.vision_image[:, :, 1] = 0
 
     return Rover

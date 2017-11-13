@@ -4,6 +4,8 @@ from PIL import Image
 from io import BytesIO, StringIO
 import base64
 import time
+import pygame, sys
+from pygame.locals import *
 
 
 def rover_check_stuck(Rover):
@@ -11,11 +13,9 @@ def rover_check_stuck(Rover):
       y = np.abs(Rover.prev_position[0][1] - Rover.prev_position[-1][1])
       
       if (x < 0.01 and y < 0.01 and Rover.throttle > 0 and Rover.mode == "forward"):
-            Rover.stuck = True
+             return True
       else:
-            Rover.stuck = False
-
-      print(x, '    ',y)
+            return False
 
 
 # Define a function to convert telemetry strings to float independent of decimal convention
@@ -61,9 +61,7 @@ def update_rover(Rover, data):
       else:
             Rover.prev_position.append(Rover.pos)
 
-      rover_check_stuck(Rover)
-
-
+      Rover.stuck = rover_check_stuck(Rover)
 
 
       # print('speed =',Rover.vel, 'position =', Rover.pos, 'throttle =', 
@@ -80,17 +78,17 @@ def update_rover(Rover, data):
       print('throttle = {}'.format(Rover.throttle))
       print('brake = {}'.format(Rover.brake))
       print('steer_angle = {}'.format(Rover.steer))
+      print('rock on vision = {}'.format(Rover.rock_found))
       print('near_sample = {}'.format(Rover.near_sample))
       print('picking_up = {}'.format(data["picking_up"]))
       print('sending pickup = {}'.format(Rover.send_pickup))
       print('total time = {}'.format(Rover.total_time))
       # print('prev position = {}'.format(Rover.prev_position))
 
-
       print('\nTotal samples = {}'.format(Rover.samples_to_find))
       print('samples remaining = {}'.format(data["sample_count"]))
       print('samples collected = {}'.format(Rover.samples_collected))
-      print('samples position = {}'.format(Rover.samples_pos))
+      # print('samples position = {}'.format(Rover.samples_pos))
       print('=============================== \n')
 
       # Get the current image from the center camera of the rover
@@ -189,4 +187,7 @@ def create_output_images(Rover):
       pil_img.save(buff, format="JPEG")
       encoded_string2 = base64.b64encode(buff.getvalue()).decode("utf-8")
 
-      return encoded_string1, encoded_string2
+
+      encoded_string3 = encoded_string2
+
+      return encoded_string1, encoded_string2, encoded_string3  # <------- JORCUS
