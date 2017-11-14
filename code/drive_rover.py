@@ -53,7 +53,7 @@ class RoverState():
         self.nav_dists = None # Distances of navigable terrain pixels
         self.ground_truth = ground_truth_3d # Ground truth worldmap
         self.mode = 'forward' # Current mode (can be forward or stop)
-        self.throttle_set = 0.0 # Throttle setting when accelerating
+        self.throttle_set = 0.2 # Throttle setting when accelerating
         self.brake_set = 10 # Brake setting when braking
         # The stop_forward and go_forward fields below represent total count
         # of navigable terrain pixels.  This is a very crude form of knowing
@@ -80,6 +80,8 @@ class RoverState():
         self.rock_found = False
         self.prev_position = []
         self.stuck = False
+        self.stuck_record = []
+        self.unstuck_turningfrequency = 0
         self.rock_nav_dists = None
         self.rock_nav_angles = None
 
@@ -119,7 +121,7 @@ def telemetry(sid, data):
             Rover = decision_step(Rover)
 
             # Create output images to send to server
-            out_image_string1, out_image_string2, out_image_string3 = create_output_images(Rover)
+            out_image_string1, out_image_string2 = create_output_images(Rover)
 
             # The action step!  Send commands to the rover!
  
@@ -135,13 +137,14 @@ def telemetry(sid, data):
             else:
                 # Send commands to the rover!
                 commands = (Rover.throttle, Rover.brake, Rover.steer)
-                send_control(commands, out_image_string1, out_image_string2, out_image_string3)
+                send_control(commands, out_image_string1, out_image_string2)
+
 
         # In case of invalid telemetry, send null commands
         else:
 
             # Send zeros for throttle, brake and steer and empty images
-            send_control((0, 0, 0), '', '', '')
+            send_control((0, 0, 0), '', '')
 
         # If you want to save camera images from autonomous driving specify a path
         # Example: $ python drive_rover.py image_folder_path
@@ -157,22 +160,21 @@ def telemetry(sid, data):
 @sio.on('connect')
 def connect(sid, environ):
     print("connect ", sid)
-    send_control((0, 0, 0), '', '', '')
+    send_control((0, 0, 0), '', '')
     sample_data = {}
     sio.emit(
         "get_samples",
         sample_data,
         skip_sid=True)
 
-def send_control(commands, image_string1, image_string2, image_string3):
+def send_control(commands, image_string1, image_string2):
     # Define commands to be sent to the rover
     data={
         'throttle': commands[0].__str__(),
         'brake': commands[1].__str__(),
         'steering_angle': commands[2].__str__(),
         'inset_image1': image_string1,
-        'inset_image2': image_string2,
-        'inset_image3': image_string3
+        'inset_image2': image_string2
         }
     # Send commands via socketIO server
     sio.emit(

@@ -3,7 +3,7 @@ import cv2
 
 # Identify pixels above the threshold
 # Threshold of RGB > 160 does a nice job of identifying ground pixels only
-def color_thresh(img, rgb_thresh=(140, 140, 140)):
+def color_thresh(img, rgb_thresh=(105, 105, 105)):
     # Create an array of zeros same xy size as img, but single channel
     color_select = np.zeros_like(img[:,:,0])
     # Require that each pixel be above all three threshold values in RGB
@@ -21,6 +21,7 @@ def color_thresh(img, rgb_thresh=(140, 140, 140)):
 def obstacle_thresh(img):
     threshed = color_thresh(img)
     return np.absolute(np.float32(threshed) - 1)
+
 
 # function to identify the rocks
 def rocks_thresh(img, rgb_thresh=(100,100,60)):
@@ -167,7 +168,6 @@ def perception_step(Rover):
         if not isinstance(rock_x, np.ndarray):
             rock_x = [rock_x]
             rock_y = [rock_y]
-            rock_ang = [rock_ang]
         
         rock_xcen = rock_x[rock_idx]
         rock_ycen = rock_y[rock_idx]

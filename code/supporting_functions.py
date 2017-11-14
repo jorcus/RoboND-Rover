@@ -41,6 +41,7 @@ def update_rover(Rover, data):
             tot_time = time.time() - Rover.start_time
             if np.isfinite(tot_time):
                   Rover.total_time = tot_time
+
       # Print out the fields in the telemetry data dictionary
       # print(data.keys())
       Rover.vel = convert_to_float(data["speed"])
@@ -57,9 +58,12 @@ def update_rover(Rover, data):
       # Reserve previous position for checking the rover is stuck or not
       if len(Rover.prev_position) > 30:
             Rover.prev_position.pop(0)
+            Rover.stuck_record.pop(0)
             Rover.prev_position.append(Rover.pos)
+            Rover.stuck_record.append(Rover.stuck)
       else:
             Rover.prev_position.append(Rover.pos)
+            Rover.stuck_record.append(Rover.stuck)
 
       Rover.stuck = rover_check_stuck(Rover)
 
@@ -84,8 +88,9 @@ def update_rover(Rover, data):
       print('sending pickup = {}'.format(Rover.send_pickup))
       print('total time = {}'.format(Rover.total_time))
       # print('prev position = {}'.format(Rover.prev_position))
+      # print('stuck record = {}'.format(Rover.stuck_record))
 
-      print('\nTotal samples = {}'.format(Rover.samples_to_find))
+      print('Total samples = {}'.format(Rover.samples_to_find))
       print('samples remaining = {}'.format(data["sample_count"]))
       print('samples collected = {}'.format(Rover.samples_collected))
       # print('samples position = {}'.format(Rover.samples_pos))
@@ -98,6 +103,7 @@ def update_rover(Rover, data):
 
       # Return updated Rover and separate image for optional saving
       return Rover, image
+
 
 # Define a function to create display output given worldmap results
 def create_output_images(Rover):
@@ -185,9 +191,8 @@ def create_output_images(Rover):
       pil_img = Image.fromarray(Rover.vision_image.astype(np.uint8))
       buff = BytesIO()
       pil_img.save(buff, format="JPEG")
+      #pil_img.show()
       encoded_string2 = base64.b64encode(buff.getvalue()).decode("utf-8")
 
-
-      encoded_string3 = encoded_string2
-
-      return encoded_string1, encoded_string2, encoded_string3  # <------- JORCUS
+ 
+      return encoded_string1, encoded_string2 

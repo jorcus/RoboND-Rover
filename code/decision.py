@@ -14,7 +14,23 @@ def decision_step(Rover):
     if Rover.nav_angles is not None:
         # Check for Rover.mode status
 
-        if Rover.mode == 'forward': 
+        if Rover.mode == 'stuck':
+            flip_coin = random.randint(0,1)
+            Rover.throttle = 0
+            Rover.brake = 0
+
+            if flip_coin == 0:
+                if np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15) > 0:
+                    Rover.steer = 15
+                else:
+                    Rover.steer = -15
+            else:
+                Rover.throttle = 1.0
+                Rover.unstuck_turningfrequency = 0
+                Rover.mode = 'forward'
+
+
+        elif Rover.mode == 'forward': 
             # Check the extent of navigable terrain
 
             if (Rover.near_sample):
@@ -26,17 +42,12 @@ def decision_step(Rover):
             elif len(Rover.nav_angles) >= Rover.stop_forward:
                 # If mode is forward, navigable terrain looks good 
                 # and velocity is below max, then throttle 
-
-
+                
                 if Rover.stuck is True:
-                    coin = random.randint(1, 2)
-                    if coin == 1:
-                        Rover.throttle = 3*Rover.throttle_set
-                    else:
-                        Rover.throttle = 0
-                        Rover.brake = 0
-                        Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15) 
-
+                    Rover.brake = 0
+                    Rover.throttle = 0
+                    Rover.mode = 'stuck'
+                    
 
                 elif Rover.vel < Rover.max_vel:
                     # Set throttle value to throttle setting
@@ -99,5 +110,7 @@ def decision_step(Rover):
     # If in a state where want to pickup a rock send pickup command
     if Rover.near_sample and Rover.vel == 0 and not Rover.picking_up:
         Rover.send_pickup = True
+        Rover.mode = 'forward'
+
     
     return Rover
