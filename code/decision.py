@@ -1,5 +1,6 @@
 import numpy as np
-import  random
+import random
+
 
 # This is where you can build a decision tree for determining throttle, brake and steer 
 # commands based on the output of the perception_step() function
@@ -15,7 +16,7 @@ def decision_step(Rover):
         # Check for Rover.mode status
 
         if Rover.mode == 'stuck':
-            flip_coin = random.randint(0,1)
+            flip_coin = random.randint(0, 1)
             Rover.throttle = 0
             Rover.brake = 0
 
@@ -29,15 +30,14 @@ def decision_step(Rover):
                 Rover.unstuck_turningfrequency = 0
                 Rover.mode = 'forward'
 
-
         elif Rover.mode == 'forward': 
             # Check the extent of navigable terrain
 
-            if (Rover.near_sample):
-                	Rover.brake = Rover.brake_set
-                	Rover.throttle = 0
-                	Rover.steer = 0
-                	Rover.mode = 'stop'
+            if Rover.near_sample:
+                Rover.brake = Rover.brake_set
+                Rover.throttle = 0
+                Rover.steer = 0
+                Rover.mode = 'stop'
 
             elif len(Rover.nav_angles) >= Rover.stop_forward:
                 # If mode is forward, navigable terrain looks good 
@@ -47,20 +47,19 @@ def decision_step(Rover):
                     Rover.brake = 0
                     Rover.throttle = 0
                     Rover.mode = 'stuck'
-                    
 
                 elif Rover.vel < Rover.max_vel:
                     # Set throttle value to throttle setting
                     Rover.throttle = Rover.throttle_set
-                else: # Else coast
+                else:  # Else coast
                     Rover.throttle = 0
                 Rover.brake = 0
                 
-                if Rover.rock_found == True and len(Rover.rock_nav_angles) > 1:	
-	            	Rover.steer = np.clip(np.mean(Rover.rock_nav_angles * 180/np.pi), -15, 15)
+                if Rover.rock_found is True and len(Rover.rock_nav_angles) > 1:
+                    Rover.steer = np.clip(np.mean(Rover.rock_nav_angles * 180/np.pi), -15, 15)
                 else:
-	                Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
-	               
+                    Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
+
             # If there's a lack of navigable terrain pixels then go to 'stop' mode
             elif len(Rover.nav_angles) < Rover.stop_forward:
                     # Set mode to "stop" and hit the brakes!
@@ -86,10 +85,10 @@ def decision_step(Rover):
                     Rover.brake = 0
                     
                     if Rover.near_sample:
-                    	Rover.steer = 0
+                        Rover.steer = 0
                     else:
-	                    # Turn range is +/- 15 degrees, when stopped the next line will induce 4-wheel turning
-	                    Rover.steer = -15 # Could be more clever here about which way to turn
+                        # Turn range is +/- 15 degrees, when stopped the next line will induce 4-wheel turning
+                        Rover.steer = -15  # Could be more clever here about which way to turn
                 # If we're stopped but see sufficient navigable terrain in front then go!
                 if len(Rover.nav_angles) >= Rover.go_forward:
                     # Set throttle back to stored value
@@ -112,5 +111,4 @@ def decision_step(Rover):
         Rover.send_pickup = True
         Rover.mode = 'forward'
 
-    
     return Rover

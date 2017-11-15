@@ -11,9 +11,9 @@ from pygame.locals import *
 def rover_check_stuck(Rover):
       x = np.abs(Rover.prev_position[0][0] - Rover.prev_position[-1][0])
       y = np.abs(Rover.prev_position[0][1] - Rover.prev_position[-1][1])
-      
-      if (x < 0.01 and y < 0.01 and Rover.throttle > 0 and Rover.mode == "forward"):
-             return True
+
+      if x < 0.01 and y < 0.01 and Rover.throttle > 0 and Rover.mode == "forward":
+            return True
       else:
             return False
 
@@ -67,11 +67,10 @@ def update_rover(Rover, data):
 
       Rover.stuck = rover_check_stuck(Rover)
 
-
-      # print('speed =',Rover.vel, 'position =', Rover.pos, 'throttle =', 
-      # Rover.throttle, 'steer_angle =', Rover.steer, 'near_sample:', Rover.near_sample, 
-      # 'picking_up:', data["picking_up"], 'sending pickup:', Rover.send_pickup, 
-      # 'total time:', Rover.total_time, 'samples remaining:', data["sample_count"], 
+      # print('speed =',Rover.vel, 'position =', Rover.pos, 'throttle =',
+      # Rover.throttle, 'steer_angle =', Rover.steer, 'near_sample:', Rover.near_sample,
+      # 'picking_up:', data["picking_up"], 'sending pickup:', Rover.send_pickup,
+      # 'total time:', Rover.total_time, 'samples remaining:', data["sample_count"],
       # 'samples collected:', Rover.samples_collected)
 
       print('driving mode = {}'.format(Rover.mode))
@@ -107,7 +106,6 @@ def update_rover(Rover, data):
 
 # Define a function to create display output given worldmap results
 def create_output_images(Rover):
-
       # Create a scaled map for plotting and clean up obs/nav pixels a bit
       if np.max(Rover.worldmap[:,:,2]) > 0:
             nav_pix = Rover.worldmap[:,:,2] > 0
@@ -126,6 +124,7 @@ def create_output_images(Rover):
       plotmap[:, :, 0] = obstacle
       plotmap[:, :, 2] = navigable
       plotmap = plotmap.clip(0, 255)
+
       # Overlay obstacle and navigable terrain map with ground truth map
       map_add = cv2.addWeighted(plotmap, 1, Rover.ground_truth, 0.5, 0)
 
@@ -134,8 +133,8 @@ def create_output_images(Rover):
       # If there are, we'll step through the known sample positions
       # to confirm whether detections are real
       samples_located = 0
+
       if rock_world_pos[0].any():
-            
             rock_size = 2
             for idx in range(len(Rover.samples_pos[0])):
                   test_rock_x = Rover.samples_pos[0][idx]
@@ -194,5 +193,4 @@ def create_output_images(Rover):
       #pil_img.show()
       encoded_string2 = base64.b64encode(buff.getvalue()).decode("utf-8")
 
- 
       return encoded_string1, encoded_string2 
