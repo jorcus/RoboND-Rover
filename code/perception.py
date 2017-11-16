@@ -25,13 +25,14 @@ def obstacle_thresh(img):
 
 
 # function to identify the rocks
-def rocks_thresh(img, rgb_thresh=(100,100,60)):
-    rockpix = ((img[:, :, ] > rgb_thresh[0]) \
-                  & (img[:, :, 1] > rgb_thresh[1]) \
-                  & (img[:, :, 2] < rgb_thresh[2]))
-    
-    rock_select = np.zeros_like(img[:,:,0])
+def rocks_thresh(img, rgb_thresh=(100, 100, 60)):
+    rockpix = ((img[:, :, 0] > rgb_thresh[0])
+               & (img[:, :, 1] > rgb_thresh[1])
+               & (img[:, :, 2] < rgb_thresh[2]))
+
+    rock_select = np.zeros_like(img[:, :, 0])
     rock_select[rockpix] = 1
+
     return rock_select
 
 
