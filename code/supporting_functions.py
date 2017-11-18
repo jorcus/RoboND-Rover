@@ -4,8 +4,6 @@ from PIL import Image
 from io import BytesIO, StringIO
 import base64
 import time
-import pygame, sys
-from pygame.locals import *
 
 
 def rover_check_stuck(Rover):
